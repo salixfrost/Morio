@@ -1,0 +1,66 @@
+<!-- Shader Background -->
+<canvas id="shaderCanvas"></canvas>
+
+<!-- SVG Filters -->
+<svg width="0" height="0">
+  <filter id="filmGrain">
+    <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="4" seed="42" result="noise" />
+    <feColorMatrix in="noise" type="saturate" values="0" result="desaturatedNoise" />
+    <feComponentTransfer in="desaturatedNoise" result="grain">
+      <feFuncA type="discrete" tableValues="0 0 0 1 1" />
+    </feComponentTransfer>
+  </filter>
+
+  <filter id="edge-displacement">
+    <feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="1" />
+    <feDisplacementMap in="SourceGraphic" scale="50" />
+  </filter>
+
+  <filter id="glow" x="-150%" y="-150%" width="400%" height="400%">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="50" result="blurred" />
+    <feComponentTransfer in="blurred" result="brighterGlow">
+      <feFuncA type="linear" slope="0.8" />
+    </feComponentTransfer>
+    <feMerge>
+      <feMergeNode in="brighterGlow" />
+      <feMergeNode in="SourceGraphic" />
+    </feMerge>
+  </filter>
+</svg>
+
+<!-- Toggle Controls (hidden checkboxes) -->
+<input id="filter-toggle" type="checkbox" checked aria-label="Toggle edge displacement">
+<input id="grain-toggle" type="checkbox" checked aria-label="Toggle grain effect">
+<input id="shape-toggle" type="checkbox" checked aria-label="Toggle blob shape">
+
+<!-- Main Blob -->
+<div class="blob-wrapper">
+  <div class="blob blob-shape">
+    <div class="grain-overlay"></div>
+  </div>
+</div>
+
+<!-- Control Panel -->
+<div class="controls">
+  <button id="playPauseBtn" aria-label="Play/Pause audio">
+    <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 512 512">
+      <path d="M133 440a35.37 35.37 0 01-17.5-4.67c-12-6.8-19.46-20-19.46-34.33V111c0-14.37 7.46-27.53 19.46-34.33a35.13 35.13 0 0135.77.45l247.85 148.36a36 36 0 010 61l-247.89 148.4A35.5 35.5 0 01133 440z" />
+    </svg>
+    <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" style="display: none;">
+      <path d="M208 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16zM352 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16z" />
+    </svg>
+  </button>
+
+  <label for="shape-toggle" title="Organic Shape">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
+      <path d="M265.12 60.12a12 12 0 00-18.23 0C215.23 97.15 112 225.17 112 320c0 88.37 55.64 144 144 144s144-55.63 144-144c0-94.83-103.23-222.85-134.88-259.88zM272 412a12 12 0 01-11.34-16 11.89 11.89 0 0111.41-8A60.06 60.06 0 00332 328.07a11.89 11.89 0 018-11.41A12 12 0 01356 328a84.09 84.09 0 01-84 84z" />
+    </svg>
+  </label>
+</div>
+
+<audio id="audioPlayer" style="display: none;" crossorigin="anonymous">
+  <source src="https://dn720707.ca.archive.org/0/items/alices_adventures_1005_librivox/wonderland_01_carroll_64kb.mp3" type="audio/mpeg">
+</audio>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
