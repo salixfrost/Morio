@@ -5,9 +5,38 @@
 // KNOWLEDGE BASE MODULE
 let knowledgeBase = null;
 
+// VOICE HELPER
+function getRecommendedChineseVoice() {
+  const synth = window.speechSynthesis;
+  const voices = synth.getVoices();
+  const priorities = [
+    'Microsoft Huihui',
+    'Microsoft Kangkang',
+    'Google 普通话',
+    'Ting-Ting',
+    'Sin-ji',
+    'Mei-Jia',
+  ];
+  for (const name of priorities) {
+    const voice = voices.find(v => v.name.includes(name));
+    if (voice) {
+      console.log('推荐语音:', voice.name);
+      return voice;
+    }
+  }
+  const chineseVoice = voices.find(voice => 
+    voice.lang.includes('zh') || voice.lang.includes('CN') || voice.name.includes('Chinese')
+  );
+  if (chineseVoice) {
+    console.log('使用中文语音:', chineseVoice.name);
+    return chineseVoice;
+  }
+  return null;
+}
+
 async function loadKnowledgeBase() {
   try {
-    const response = await fetch('./knowledge-base.json');
+    const response = await fetch('./data/knowledge-base.json');
     knowledgeBase = await response.json();
     console.log('Knowledge base loaded:', knowledgeBase.questions.length, 'entries');
     return true;
@@ -403,11 +432,41 @@ function initSpeechRecognition(elements) {
     const response = await getResponse(transcript);
     console.log('Response:', response);
     if ('speechSynthesis' in window) {
+      const synth = window.speechSynthesis;
       const utterance = new SpeechSynthesisUtterance(response);
       utterance.lang = 'zh-CN';
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+      utterance.volume = 1.0;
+      
+      const setVoice = () => {
+        const voices = synth.getVoices();
+        console.log('Available voices:', voices.length);
+        const recommendedVoice = getRecommendedChineseVoice();
+        if (recommendedVoice) {
+          utterance.voice = recommendedVoice;
+        } else {
+          const chineseVoice = voices.find(voice => 
+            voice.lang.includes('zh') || 
+            voice.lang.includes('CN') ||
+            voice.name.includes('Chinese')
+          );
+          if (chineseVoice) {
+            utterance.voice = chineseVoice;
+            console.log('Selected voice:', chineseVoice.name);
+          } else if (voices.length > 0) {
+            utterance.voice = voices[0];
+            console.log('Using default voice:', voices[0].name);
+          }
+        }
+        synth.speak(utterance);
+      };
+      
+      if (synth.getVoices().length > 0) {
+        setVoice();
+      } else {
+        synth.addEventListener('voiceschanged', setVoice, { once: true });
+      }
     }
   };
 

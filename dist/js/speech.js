@@ -3,6 +3,7 @@
 // ============================================
 
 import { searchKnowledgeBase, fuzzySearch } from './knowledge.js';
+import { getRecommendedChineseVoice } from './voice-helper.js';
 
 let recognition;
 let isRecognitionActive = false;
@@ -80,13 +81,50 @@ export function initSpeechRecognition(elements) {
     const response = await getResponse(transcript);
     console.log('Response:', response);
     
-    // 使用语音合成朗读回答（可选）
+    // 使用语音合成朗读回答
     if ('speechSynthesis' in window) {
+      const synth = window.speechSynthesis;
       const utterance = new SpeechSynthesisUtterance(response);
       utterance.lang = 'zh-CN';
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+      utterance.volume = 1.0;
+      
+      // 等待语音列表加载完成
+      const setVoice = () => {
+        const voices = synth.getVoices();
+        console.log('Available voices:', voices.length);
+        
+        // 使用推荐的中文语音
+        const recommendedVoice = getRecommendedChineseVoice();
+        if (recommendedVoice) {
+          utterance.voice = recommendedVoice;
+        } else {
+          // 备用方案：查找任何中文语音
+          const chineseVoice = voices.find(voice => 
+            voice.lang.includes('zh') || 
+            voice.lang.includes('CN') ||
+            voice.name.includes('Chinese')
+          );
+          
+          if (chineseVoice) {
+            utterance.voice = chineseVoice;
+            console.log('Selected voice:', chineseVoice.name);
+          } else if (voices.length > 0) {
+            utterance.voice = voices[0];
+            console.log('Using default voice:', voices[0].name);
+          }
+        }
+        
+        synth.speak(utterance);
+      };
+      
+      // 处理语音列表异步加载
+      if (synth.getVoices().length > 0) {
+        setVoice();
+      } else {
+        synth.addEventListener('voiceschanged', setVoice, { once: true });
+      }
     }
   };
 

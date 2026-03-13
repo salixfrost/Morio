@@ -7,6 +7,7 @@ import { setupAudioEvents } from './audio.js';
 import { initSpeechRecognition } from './speech.js';
 import { setupBlobInteraction } from './blob.js';
 import { loadKnowledgeBase } from './knowledge.js';
+import { listAvailableVoices } from './voice-helper.js';
 
 // DOM Elements
 const elements = {
@@ -24,6 +25,11 @@ async function init() {
   
   // 加载知识库
   await loadKnowledgeBase();
+  
+  // 列出可用语音包（调试用）
+  if ('speechSynthesis' in window) {
+    await listAvailableVoices();
+  }
   
   initShader();
   setupAudioEvents(elements);
